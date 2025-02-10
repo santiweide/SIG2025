@@ -12,7 +12,7 @@ def gamma_transform(image, gamma):
     return (corrected * 255).astype(np.uint8)  # Convert back to [0,255]
 
 # Load and apply gamma correction to a grayscale image
-gray_image = iio.imread("autumn.tif", mode="L")
+gray_image = iio.imread("../TestImages/Week 1/cameraman.tif")
 gamma_values = [0.5, 1.0, 2.0]
 
 plt.figure(figsize=(12, 4))
@@ -38,7 +38,7 @@ def gamma_correct_rgb(image, gamma):
     return corrected
 
 # Load color image and apply gamma correction
-rgb_image = iio.imread("autumn.tif")
+rgb_image = iio.imread("../TestImages/Week 1/cameraman.tif")
 gamma_corrected_rgb = gamma_correct_rgb(rgb_image, 2.0)
 
 plt.figure(figsize=(10, 5))

@@ -75,7 +75,7 @@ A gamma=1 is equals to the original gray-scale picture, a gamma=0.5 makes dark r
 
 \begin{figure}[ht]
 \centering
-    \includegraphics[width=1\columnwidth, keepaspectratio]{pics/a2-1.1}
+    \includegraphics[width=0.7\columnwidth, keepaspectratio]{pics/a2-1.1}
 \caption[]{Pixel-wise contrast enhancement on a gray scale picture}
 \label{fig:1.1}
 \end{figure}
@@ -94,7 +94,7 @@ def gamma_correct_hsv(image, gamma):
 \end{lstlisting}
 \begin{figure}[ht]
 \centering
-    \includegraphics[width=1\columnwidth, keepaspectratio]{pics/a2-1.2}
+    \includegraphics[width=0.7\columnwidth, keepaspectratio]{pics/a2-1.2}
 \caption[]{Pixel-wise contrast enhancement on a gray scale picture}
 \label{fig:1.2}
 \end{figure}
@@ -114,13 +114,53 @@ def gamma_correct_hsv(image, gamma):
 
 \begin{figure}[ht]
 \centering
-    \includegraphics[width=1\columnwidth, keepaspectratio]{pics/a2-1.3}
+    \includegraphics[width=0.7\columnwidth, keepaspectratio]{pics/a2-1.3}
 \caption[]{Pixel-wise contrast enhancement on a gray scale picture}
 \label{fig:1.3}
 \end{figure}
 
-\section{Reverb Convolution}
+\section{Reverb convolution}
 %wanjing
+\subsection{Plot laugh2.wav}
+See figure ~\ref{fig:2.1}. The orange curve represents right sound track, and the blue curve represents the left sound track. The height of the curve represents the amplitude of this audio channel over time, with x-axis as time and y-axis as amplitude.
+The sample rate represents how many samples per second are used to represent the sound.
+
+\begin{figure}[ht]
+\centering
+    \includegraphics[width=0.7\columnwidth, keepaspectratio]{pics/a2-2.1}
+\caption[]{Plot laugh2.wav}
+\label{fig:2.1}
+\end{figure}
+
+\subsection{Reverb}
+
+Reverb simulates sound reflections in space, making it feel more spacious and echoing.
+With the convolution of Clap, the reverb mix the clap and the origin laughter, and it sounds like the laughter is mixed with claps in a hall. See ~\ref{ig:f2.1.2}.
+With the convolution of Splash, the laughter sounds like coming from the outer space.  See ~\ref{ig:f2.1.3}.
+
+
+\begin{figure}[ht]
+\centering
+\subfigure[Original Signal]{
+    \includegraphics[width=0.7\columnwidth, keepaspectratio]{pics/a2-2.2-origin}
+\label{fig:f2.1.1}
+}
+\subfigure[Response Signal, Clap]{
+    \includegraphics[width=0.7\columnwidth, keepaspectratio]{pics/a2-2.2-clap}
+\label{fig:f2.1.2}
+}
+\subfigure[Response Signal, Splash]{
+    \includegraphics[width=0.7\columnwidth, keepaspectratio]{pics/a2-2.2-splash}
+\label{ig:f2.1.3}
+}
+
+\caption[]{Plot laugh2.wav}
+\label{fig:2.1}
+\end{figure}
+
+\subsection{Longer explanation}
+
+The convolution operation matches the two inputs and do calculation. The output size is $len(signal)+len(impulse)-1$. In our case, the convolution blends the original waveform with the impulse response and adds tail reflections.
 
 \section{Image filtering and enhancement}
 %zhigao
