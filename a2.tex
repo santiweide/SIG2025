@@ -71,7 +71,7 @@ def gamma_transform(image, gamma):
     return (corrected * 255).astype(np.uint8) 
 \end{lstlisting}
 
-A gamma=1 is equals to the original gray-scale picture, a gamma less than 1 makes dark regions brighter, and gamma larger than 1 darkens bright regions. This affects image contrast and detail visibility.
+A gamma=1 is equals to the original gray-scale picture, a gamma=0.5 makes dark regions look brighter, and a gamma=2.0 darkens bright regions. See figure~\ref{fig:1.1}.
 
 \begin{figure}[ht]
 \centering
@@ -80,9 +80,44 @@ A gamma=1 is equals to the original gray-scale picture, a gamma less than 1 make
 \label{fig:1.1}
 \end{figure}
 
-\subsection{Color Image - RGB separately}
+\subsection{Color Image - RGB correction}
+
+ See figure~\ref{fig:1.2}.
+
+\begin{lstlisting}
+def gamma_correct_hsv(image, gamma):
+    hsv_image = color.rgb2hsv(image)
+    hsv_image[..., 2] = 
+      gamma_transform(
+      	(hsv_image[..., 2] * 255).astype(np.uint8), gamma) / 255.0
+    return (color.hsv2rgb(hsv_image) * 255).astype(np.uint8)
+\end{lstlisting}
+\begin{figure}[ht]
+\centering
+    \includegraphics[width=1\columnwidth, keepaspectratio]{pics/a2-1.2}
+\caption[]{Pixel-wise contrast enhancement on a gray scale picture}
+\label{fig:1.2}
+\end{figure}
 
 \subsection{Color Image - HSV color representation}
+
+\begin{lstlisting}
+def gamma_correct_hsv(image, gamma):
+    hsv_image = color.rgb2hsv(image)
+    hsv_image[..., 2] = 
+      gamma_transform((hsv_image[..., 2] * 255).astype(np.uint8), gamma) / 255.0
+    return (color.hsv2rgb(hsv_image) * 255).astype(np.uint8)
+\end{lstlisting}
+
+ See figure~\ref{fig:1.3}. 
+ The result of the RGB Correction is a little more brighter on the bright part, and thus look less natural. This may because the RGB Correction alters all channels independently, and the colors may be distorted. The HSV Correction modifies only the brightness while preserving colors, so it looks better.
+
+\begin{figure}[ht]
+\centering
+    \includegraphics[width=1\columnwidth, keepaspectratio]{pics/a2-1.3}
+\caption[]{Pixel-wise contrast enhancement on a gray scale picture}
+\label{fig:1.3}
+\end{figure}
 
 \section{Reverb Convolution}
 %wanjing
