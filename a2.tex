@@ -208,7 +208,108 @@ Figure 6 shows the original image as well as the image with salt and pepper nois
     \end{figure}
     From figure 10, I found that Gaussian filter is suitable for removing Gaussian noise, not for salt and Pepper noise. Too little $\sigma$ is not enough for denoising and too much $\sigma$ causes blurring, That is, the image loses a lot of sharpness. I think $\sigma$ = 7 - 9 is recommended as the best balance point, But it is also depends on the level of noise.
 \section{Histogram-based processing}
-%shuangcheng
+\subsection{}
+\begin{lstlisting}[caption={CDF Calculation},captionpos=b]
+def compute_cdf(image):
+    hist, _ = np.histogram(image.flatten(), bins=256, range=[0, 256])
+    cdf = np.cumsum(hist).astype(np.float32)
+    cdf /= cdf[-1]  # Normalize to [0,1]
+    return hist, cdf
+\end{lstlisting}
 
+\begin{figure}[ht]
+        \centering
+            \includegraphics[width=0.7\columnwidth, keepaspectratio]{pics/a2-4.1}
+        \caption[]{Computing the CDF for pout.tif}
+    \label{fig:4.1}
+    \end{figure}
+
+Figure \ref{fig:4.1} shows the result of computing the CDF for the image pout.tif using your function.
+
+The areas where CDF increases rapidly (about 80-150) indicate that the pixel values in these areas appear frequently, which means that most of the pixels in the image are in this grayscale range. Corresponding to the original image, it may be the background or a large area of clothing.
+The areas where CDF is flat represent
+the low grayscale part (0-50) and the high grayscale part (above 200). This means that the frequency of occurrence of these pixel values is very low, and there are almost no particularly dark or bright areas in the image. This reflects that the contrast of the original image is low, and the pixel values are concentrated in the medium grayscale area, which makes the image look dark and not vivid enough.
+
+\subsection{}
+\begin{lstlisting}[caption={Apply CDF Transformation to Image},captionpos=b]
+def apply_cdf(image, cdf):
+    cdf_mapped = np.round(cdf * 255).astype(np.uint8)
+    equalized_image = cdf_mapped[image]
+    return equalized_image
+\end{lstlisting}
+
+Figure \ref{fig:4.2} shows the result of applying this function to the pout.tif image.
+\begin{figure}[ht]
+        \centering
+            \includegraphics[width=0.7\columnwidth, keepaspectratio]{pics/a2-4.2}
+        \caption[]{Apply CDF to pout.tif}
+    \label{fig:4.2}
+    \end{figure}
+
+\subsection{}
+
+Answer to the question:
+In some grayscale value intervals, pixel values may not appear, resulting in a flat area in the CDF. In these areas, the derivative of the CDF is 0, and the reverse mapping cannot be uniquely determined. At the same time, the pixel value is discrete (0-255), while the CDF is a continuous cumulative curve in mathematics, which may result in no unique solution for the mapped pixel value.
+
+\begin{lstlisting}[caption={Compute Inverse CDF},captionpos=b]
+def compute_inverse_cdf(cdf):
+    intensity_levels = np.linspace(0, 255, 256)
+    inverse_cdf = np.interp(np.linspace(0, 1, 256), cdf, intensity_levels)
+    return np.clip(np.round(inverse_cdf), 0, 255).astype(np.uint8)
+
+\end{lstlisting}
+
+\subsection{}
+
+\begin{lstlisting}[caption={Perform Histogram Matching between Two Images},captionpos=b]
+def ensure_numpy_array(cdf):
+# Ensure that the given CDF is a NumPy array.
+    if isinstance(cdf, tuple):
+        cdf = np.array(cdf[0])
+    else:
+        cdf = np.array(cdf)
+    return cdf
+
+def histogram_matching(source_image, target_image):
+
+    _, cdf_source = compute_cdf(source_image)
+    _, cdf_target = compute_cdf(target_image)
+
+    inverse_cdf_target = compute_inverse_cdf(cdf_target)
+
+    # Normalize source image intensity to CDF space
+    source_cdf_values = cdf_source[source_image]
+
+    # Map source CDF values to target intensity values
+    matched_image = np.interp(source_cdf_values, np.linspace(0, 1, 256), inverse_cdf_target)
+
+    # Convert to uint8 and clip values
+    matched_image = np.clip(matched_image, 0, 255).astype(np.uint8)
+
+    return matched_image
+\end{lstlisting}
+
+Figure \ref{fig:4.4-1} shows the results of the histogram matching between two images.
+
+\begin{figure}[ht]
+        \centering
+            \includegraphics[width=0.7\columnwidth, keepaspectratio]{pics/a2-4.4-1.png}
+        \caption[]{Perform Histogram Matching between Two Images}
+    \label{fig:4.4-1}
+    \end{figure}
+
+Figure \ref{fig:4.4-2} shows the cumulative distribution function (CDF) of the original image, the target image, and the image after histogram matching:
+The CDF of the matched image is very close to the CDF of the target image, indicating that the histogram matching successfully adjusted the pixel distribution.
+The CDF remains monotonically increasing, ensuring that the pixel value mapping is reasonable and there are no obvious artifacts.
+Overall, the histogram matching method effectively adjusts the original image to make its pixel distribution closer to the target image.
+\begin{figure}[ht]
+        \centering
+            \includegraphics[width=0.7\columnwidth, keepaspectratio]{pics/a2-4.4-2.png}
+        \caption[]{Cumulative Histograms Comparison}
+    \label{fig:4.4-2}
+    \end{figure}
 
 \end{document}
+
+
+
