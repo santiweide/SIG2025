@@ -62,24 +62,6 @@ plt.show()
 
 #%%
 #4.3
-# def compute_inverse_cdf(cdf):
-#     """
-#     Compute the pseudo-inverse of a given CDF.
-#     Ensures proper intensity mapping for histogram matching.
-#     """
-#     inverse_cdf = np.zeros(256, dtype=np.uint8)
-#
-#     min_cdf_value = np.min(cdf)
-#     max_cdf_value = np.max(cdf)
-#
-#     for l in range(256):
-#         indices = np.where(cdf >= (l / 255.0) * (max_cdf_value - min_cdf_value) + min_cdf_value)[0]
-#         if len(indices) > 0:
-#             inverse_cdf[l] = indices[0]  # Take the first valid index
-#         else:
-#             inverse_cdf[l] = 255  # Default to max intensity if no match
-#
-#     return inverse_cdf
 def compute_inverse_cdf(cdf):
     """
     Compute a smoothed pseudo-inverse of a given CDF using interpolation.
