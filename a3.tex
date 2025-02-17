@@ -16,7 +16,7 @@
 \usepackage{listings}  
 \usepackage{xcolor}   % Color support
 \usepackage{tcolorbox} % Box for better appearance
-
+\usepackage{enumitem} 
 % Define custom colors for code highlighting
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
@@ -44,130 +44,106 @@
 }
 
 
+
+
+
 \title{Assignment 3}
+
 
 \begin{document}
 \maketitle
-
-
 \section{1 Complex numbers}
 %wanjing
 
-\subsection{} % 1.1
-
-\textbf{(i)} 
-
-\begin{equation}
-\begin{aligned}
-d &=(a_1 + i a_2) + (b_1 + i b_2) = (a_1 + b_1) + i\,(a_2 + b_2).
-\end{aligned}
-\end{equation}
-
-\textbf{(ii)}
-\begin{equation}
-\begin{aligned}
-d &=(a_1 + i a_2) - (b_1 + i b_2) = (a_1 - b_1) + i\,(a_2 - b_2).
-\end{aligned}
-\end{equation}
-
-\textbf{(iii)} 
-\begin{equation}
-\begin{aligned}
-d &=(a_1 + i a_2)(b_1 + i b_2) \\
-&= a_1b_1 + i a_1b_2 + i a_2b_1 + i^2 a_2b_2\\
-&= (a_1b_1 - a_2b_2) + i\,(a_1b_2 + a_2b_1).
-\end{aligned}
-\end{equation}
-
-\textbf{(iv)} For the quotient 
-\begin{equation}
-\begin{aligned}
-d &= \frac{a}{b} \\
-&= \frac{a_1 + i\,a_2}{b_1 + i\,b_2}\\
-&= \frac{(a_1 + i\,a_2)(b_1 - i\,b_2)}{(b_1 + i\,b_2)(b_1 - i\,b_2)}\\
-&= \frac{(a_1 + i\,a_2)(b_1 - i\,b_2)}{b_1^2 + b_2^2} \\
-&= \frac{a_1b_1 + a_2b_2 + i\,(a_2b_1 - a_1b_2)}{b_1^2 + b_2^2}\\
-&= \frac{a_1b_1 + a_2b_2}{b_1^2+b_2^2} + i\,\frac{a_2b_1 - a_1b_2}{b_1^2+b_2^2}.
-\end{aligned}
-\end{equation}
-
-
-\subsection{} % 1.2
-by $\sqrt{-3} = \sqrt{3}\,i$ , we have $d = 0 + i\,\sqrt{3}$. 
-
-\subsection{} % 1.3
-\textbf{(i)} 
-\begin{equation}
-\begin{aligned}
-d &= a \cdot b = a_r e^{i a_\theta} \cdot b_r e^{i b_\theta} = a_r b_r e^{i(a_\theta + b_\theta)}
-\end{aligned}
-\end{equation}
-
-
-\textbf{(ii)} 
-
-\begin{equation}
-\begin{aligned}
-d &=  \frac{a}{b} = \frac{a_r e^{i a_\theta}}{ b_r e^{i b_\theta}} =  \frac{a_r}{b_r} e^{i(a_\theta - b_\theta)}
-\end{aligned}
-\end{equation}
-
-\subsection{} %1.4
-\begin{equation}
-\begin{aligned}
-\overline{a_r e^{i a_\theta}} = a_r e^{-i a_\theta}.
-\end{aligned}
-\end{equation}
-
-\subsection{}
-
-Let 
-\[
-a = a_r e^{i a_\theta} = a_r (\cos a_\theta + i\sin a_\theta)
-\]
-and
-\[
-b = b_r e^{i b_\theta} = b_r (\cos b_\theta + i\sin b_\theta).
-\]
-
-\textbf{(i)}
-\begin{equation}
-\begin{aligned}
-d &= a + b\\
-& = \Bigl(a_r\cos a_\theta + b_r\cos b_\theta\Bigr) + i\Bigl(a_r\sin a_\theta + b_r\sin b_\theta\Bigr).
-\end{aligned}
-\end{equation}
-
-
-\textbf{(ii)} For 
-\begin{equation}
-\begin{aligned}
-d &= a + b\\
-& = \Bigl(a_r\cos a_\theta - b_r\cos b_\theta\Bigr) + i\Bigl(a_r\sin a_\theta - b_r\sin b_\theta\Bigr).
-\end{aligned}
-\end{equation}
-\subsection{}
-
-The polar form is given by
-\[
-a = r\, e^{i\theta},
-\]
-where
-\[
-r = \sqrt{a_1^2 + a_2^2} \quad \text{and} \quad \theta = \arctan\!\left(\frac{a_2}{a_1}\right)
-\]
-So
-\[
-a = \sqrt{a_1^2+a_2^2}\; e^{i\arctan\!\left(\frac{a_2}{a_1}\right)}.
-\]
-
-
 \section{2 Fourier Transform – Theory}
 %zhigao
+\subsection{}
+The Fourier Transform is:
+\[F\{f\}(u) = F(u) = \int_{-\infty}^{\infty} f(x) \exp(-i 2\pi ux) \,dx\]
+By using the Euler's formula(\(\exp(-i 2\pi ux) = \cos(2\pi ux) - i\sin(2\pi ux).\)), This formula can be rewritten as:
+\[
+F(u) = \int_{-\infty}^{\infty} f(x) \cos(2\pi ux) \,dx - i \int_{-\infty}^{\infty} f(x) \sin(2\pi ux) \,dx.
+\]
+\(\sin(2\pi ux)\) is an odd function that integrates to 0 on the symmetric interval.
+\[
+\int_{-\infty}^{\infty} f(x) \sin(2\pi ux) \,dx = 0.
+\]
+Hence, The imaginary part of \(F(u)\) is 0. \(F(u)\) is real.
+\newline
+Then, To verify that \(F(u)\) is an even function. I need to prove \(F(u) = F(-u)\).
+Firstly, I got:
+\[
+F(-u) = \int_{-\infty}^{\infty} f(x) \exp(i 2\pi ux) \,dx.
+\]
+Then I can replace the variable \(-x\) to \(x'\), hence \(dx' = -dx\), so I got:
+\[
+F(-u) = \int_{\infty}^{-\infty} f(-x') \exp(-i 2\pi ux') (-dx') 
+\]
+From the question, the \(f\) is an even function, so \(f(-x')=f(x')\).
+\(F(-u)\) can be rewritten as:
 
+\[F(-u) = \int_{-\infty}^{\infty} f(x') \exp(-i 2\pi ux') \,dx' = F(u).\]
+In summary, an even, real function is also even, real after Fourier transformed.
+\subsection{}
+\begin{enumerate}[label=(\roman*)]
+  \item \[
+\begin{aligned}
+\int_{-\infty}^{\infty} b_a(x)\,dx 
+&= \int_{-a/2}^{a/2} \frac{1}{a}\,dx  \\
+&= \frac{1}{a} \times \Bigl(\tfrac{a}{2} - \bigl(-\tfrac{a}{2}\bigr)\Bigr) \\
+&= \frac{1}{a} \times a \\
+&= 1.
+\end{aligned}
+\]
+Since the box function has values of \(\frac{1}{a}\) only on \([-\frac{a}{2},\frac{a}{2}]\), the upper and lower limits of the integral can be changed to \([-\frac{a}{2},\frac{a}{2}]\).
+  \item
+  By using the definition of the Fourier transform given in Bracewell Chapter 2:
+  \[
+    \int_{-\infty}^{\infty} f(x)\,\exp(-i2 \pi xs)\,dx.
+    \]
+  the box function could be written as:
+    \[
+B_a(k) 
+= \int_{-\infty}^{\infty} b_a(x)\,\exp(-i2\pi kx)\,dx 
+= \int_{-a/2}^{\,a/2} \frac{1}{a}\,\exp(-i2\pi kx)\,dx.
+\]
+Continue calculating:
+\[
+\begin{aligned}
+B_a(k)
+&= \frac{1}{a} \int_{-a/2}^{\,a/2} \exp(-i2\pi k x)\,dx \\[6pt]
+&= \frac{1}{a} \,\biggl[\frac{\exp(-i2\pi kx)}{-i2\pi k}\biggr]_{x=-a/2}^{\,x=a/2}
+&= \frac{1}{a} \cdot \frac{1}{-\,i\,2\pi\,k}
+\bigl(\,\exp\bigl[-\,i\,2\pi\,k \cdot \tfrac{a}{2}\bigr]
+ \;-\; \exp\bigl[-\,i\,2\pi\,k \cdot \bigl(-\tfrac{a}{2}\bigr)\bigr]\bigr).
+\end{aligned}
+\]
+By the Euler's formula:
+\[
+e^{i\theta} = \cos(\theta) + i \sin(\theta), e^{-i\theta} = \cos(\theta) - i \sin(\theta)
+\]
+The function above could be rewritten as:
+\[
+B_a(k) 
+= \frac{1}{a} \,\frac{-\,2\,i\,\sin\bigl(\pi\,a\,k\bigr)}{-\,i\,2\pi\,k}. = \frac{1}{\pi\,k\,a}\,\sin\bigl(\pi\,a\,k\bigr)
+\]
+Using the \(sinc(x) = \frac{sinx}{x}\), the final form of the Fourier transform of the box function is:
+\[B_a(k) = sinc(\pi k a)\]
+
+  \item 
+  If \(a \rightarrow 0\), \(sin(ak\pi)\rightarrow 0\), and we know 
+  \[
+\lim_{z \to 0} \frac{\sin z}{z} = 1.
+\]
+ we can see \(ak\pi\) to \(z\), hence we get:
+  \[
+\lim_{a \to 0} \frac{\sin (ak\pi)}{ak\pi} = 1.
+\]
+  \item 
+  I think if the box function is narrow in x space(a is near 0),  its Fourier transform will be wide in the k space(frequency domain). Conversely, if a is larger, then it is wider in x-space and narrower in k-space. This is the uncertainty property of the Fourier transform. this means a narrow function has a wide Fourier transform, and a wide function has a narrow Fourier transform.
+\end{enumerate}
 \section{3 Fourier Transform – In Practice}
 %shuangcheng
-
 
 
 \end{document}
