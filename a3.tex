@@ -254,6 +254,156 @@ Using the \(sinc(x) = \frac{sinx}{x}\), the final form of the Fourier transform 
 \end{enumerate}
 \section{3 Fourier Transform – In Practice}
 %shuangcheng
+\subsection{}
+We use trui.png as the input image and apply Fourier Transform to calculate its spectrum. Figure \ref{fig:original} shows the input image. After calculating Fourier Transform, we get the power spectrum as shown in Figure \ref{fig:3.1}.
 
+\begin{figure}[ht]
+    \centering
+    \subfigure[Original Figure trui.png]{
+        \includegraphics[width=0.4\columnwidth, keepaspectratio]{pics/trui.png}
+        \label{fig:original}
+    }
+    \hfill
+    \subfigure[Power Spectrum]{
+        \includegraphics[width=0.4\columnwidth, keepaspectratio]{pics/a3-3.1.png}
+        \label{fig:3.1}
+    }
+    \caption{Comparison of the Original Image and its Power Spectrum}
+    \label{fig:comparison}
+\end{figure}
+
+
+By analyzing the power spectrum, we can observe that the low-frequency components are concentrated in the center, while the high-frequency components are distributed in the periphery.
+
+We use the Python code shown in Listing 1 to calculate the Fourier transform.
+\begin{lstlisting}[caption={Compute Power Spectrum Using 2D Fourier Transform},captionpos=b]
+def compute_power_spectrum(image):
+    fft_image = scipy.fft.fft2(image)  # Compute 2D FFT
+    fft_shifted = scipy.fft.fftshift(fft_image)  # Shift zero frequency to center
+    power_spectrum = np.log(1 + np.abs(fft_shifted))  # Log scale for better visualization
+    return power_spectrum
+\end{lstlisting}
+
+Through Fourier transform, we can transform the image from the spatial domain to the frequency domain to analyze the frequency components of the image. This helps to identify noise, detect periodic structures, perform filtering, etc.
+
+When calculating the Fourier transform, the default low-frequency part of the spectrum is located in the corner, so we use fftshift to move it to the center for a more intuitive analysis of the frequency components. In addition, the dynamic range of the spectrum value is large, and direct display will result in unclear high-frequency parts, so we use $\log(1 + |\text{FFT}|) $ for logarithmic transformation so that both low-frequency and high-frequency information can be well observed.
+
+Through the power spectrum, we find that the image is mainly composed of low-frequency components, indicating that most of its areas are smoothly changing. In addition, in the high-frequency part, we can observe edge and detail information. Through Fourier transform, we can understand the frequency distribution of the image more clearly, which provides a basis for subsequent filtering operations. If the image contains more noise, the high-frequency part will be brighter. At this time, low-pass filtering can be used to remove the noise, but this may cause the image to become blurred.
+
+\subsection{}
+Figure \ref{fig:3.2} shows the input image and output results, where:
+
+\begin{figure}[ht]
+        \centering
+      \includegraphics[width=1.0\columnwidth, keepaspectratio]{pics/a3-3.2.png}
+        \caption[]{Input and Outputs}
+    \label{fig:3.2}
+    \end{figure}
+The original input image is cameraman.tif, which is a standard grayscale image with clear edges and textures.
+
+Image with Cosine Wave: A cosine interference wave is added to the original image to simulate periodic noise.
+
+Power Spectrum (Log Scale): The spectrum of the image is calculated and visualized through Fourier transform.
+
+Notch Filter: A notch filter is designed to remove interference waves of specific frequencies.
+
+Filtered Power Spectrum: Shows the changes in the spectrum after filtering.
+
+Filtered image: The final image after notch filtering.
+
+We use the Python code shown as follow to finish the problem.
+\begin{lstlisting}[caption={crucial Python Code Snippet},captionpos=b]
+# Generate cosine wave interference
+def add_cosine_wave(image, a0=50, v0=10, w0=10):
+    H, W = image.shape
+    x = np.arange(W)
+    y = np.arange(H)
+    X, Y = np.meshgrid(x, y)
+
+    wave = a0 * np.cos(2 * np.pi * (v0 * X / W + w0 * Y / H))  # Normalize frequency
+    noisy_image = np.clip(image + wave, 0, 255)  # Ensure pixel values remain in [0, 255]
+    return noisy_image.astype(np.uint8)
+
+noisy_image = add_cosine_wave(image)
+F_noisy = fft2(noisy_image)
+F_noisy_shifted = fftshift(F_noisy)
+power_spectrum = np.log(1 + np.abs(F_noisy_shifted))
+
+# Design a notch filter to remove interference
+def notch_filter(shape, v0, w0, radius=5):
+    H, W = shape
+    X, Y = np.meshgrid(np.arange(W), np.arange(H))
+    X = X - W // 2
+    Y = Y - H // 2
+    D1 = np.sqrt((X - v0) ** 2 + (Y - w0) ** 2)
+    D2 = np.sqrt((X + v0) ** 2 + (Y + w0) ** 2)
+    H = np.ones((H, W))
+    H[D1 < radius] = 0  # Suppress frequency at (v0, w0)
+    H[D2 < radius] = 0  # Suppress frequency at (-v0, -w0)
+    return H
+
+notch = notch_filter(image.shape, v0=10, w0=10)
+F_filtered = F_noisy_shifted * notch
+filtered_image = np.abs(ifft2(fftshift(F_filtered)))
+\end{lstlisting}
+In this experiment, we explored how to remove periodic stripe noise in the frequency domain and evaluated the effectiveness of Notch filtering. Using the Fourier transform, we converted the image from the spatial domain to the frequency domain, allowing us to observe and analyze its frequency components. For images affected by periodic interference, these disturbances typically manifest as distinct bright spots in the frequency domain. Therefore, we can identify the noise’s frequency distribution through spectrum analysis and design appropriate filters to eliminate it.
+
+During processing, we first introduced a cosine wave interference into the original image, creating a regular stripe pattern in the spatial domain. We then computed its power spectrum and applied fftshift to center the low-frequency components, making the spectral distribution more intuitive to analyze. After examining the power spectrum, we observed that the interference stripes corresponded to two symmetrical bright spots. Based on this information, we manually selected the relevant frequency positions and designed a Notch filter to suppress these specific frequency components. Finally, we applied an inverse Fourier transform to the filtered spectrum to reconstruct the processed image.
+
+The experimental results demonstrate that the Notch filter effectively removes periodic interference and significantly reduces stripe noise. However, since the filter selection influences surrounding frequency components, some image details may be lost. Additionally, the filter parameters require manual adjustment and cannot automatically adapt to different types of noise. In practical applications, adaptive frequency detection methods can be incorporated to automatically identify interference frequencies and optimize filter design, thereby enhancing the robustness and applicability of the denoising process.
+
+\subsection{}
+
+\begin{lstlisting}[caption={Compute Spatial Derivatives},captionpos=b]
+def frequency_derivative(image, order_x=1, order_y=1):
+    image = image.astype(np.float32)  # Convert image to float for numerical stability
+
+    # Get image dimensions
+    h, w = image.shape
+
+    # Generate frequency domain coordinates
+    u = np.fft.fftfreq(w) * w
+    v = np.fft.fftfreq(h) * h
+    U, V = np.meshgrid(u, v, indexing="xy")
+
+    U[U == 0] = 1e-6
+    V[V == 0] = 1e-6
+
+    D_x = (1j * 2 * np.pi * U) * (order_x > 0)
+    D_y = (1j * 2 * np.pi * V) * (order_y > 0)
+    D = fftshift(D_x + D_y)
+
+    F_image = fftshift(fft2(image))
+    F_derivative = F_image * D
+    derivative_image = np.real(ifft2(ifftshift(F_derivative)))
+
+    # Normalize the output for visualization
+    derivative_image = np.abs(derivative_image)
+    derivative_image = derivative_image / np.max(derivative_image) * 255
+
+    return derivative_image.astype(np.uint8)
+
+
+# Calculate derivatives in different directions
+derivative_x1_y0 = frequency_derivative(image, order_x=1, order_y=0)  # x
+'''
+The calculations for other directions are basically the same as above and will not be repeated here.
+'''
+\end{lstlisting}
+
+Figure \ref{fig:3.3} shows the illustrations of the function applied to cameraman.tif at different combinations of orders of derivatives.
+
+\begin{figure}[ht]
+        \centering
+      \includegraphics[width=1.0\columnwidth, keepaspectratio]{pics/a3-3.3.png}
+        \caption[]{Input and Outputs}
+    \label{fig:3.3}
+    \end{figure}
+
+Spatial derivatives can be efficiently computed in the frequency domain by multiplying an image’s Fourier Transform with a derivative kernel. Using the convolution theorem, we implemented a function that takes two derivative orders (one for the x-direction and one for the y-direction) and returns the corresponding partial derivative of a given image.
+
+The function first converts the image to the frequency domain using the Fourier Transform. It then applies a derivative filter by multiplying the transformed image with frequency domain operators. To ensure numerical stability, zero-frequency components were adjusted to prevent division errors. Finally, the inverse Fourier Transform is applied to obtain the spatial derivative.
+
+We tested the function on a grayscale image, computing first- and second-order derivatives in different directions. The resulting images highlight edges and fine details associated with each derivative order. A colorbar is included to aid visualization. Below, we present the function implementation along with the corresponding results.
 
 \end{document}
