@@ -64,8 +64,87 @@
 %Shuangcheng
 \section{Inverse filtering}
 %zhigao
+
 \section{Fixed scale feature detectors}
+
 %Wanjing
+\subsection{}
+
+\textbf{sigma}: This is the Standard deviation of the Gaussian filter, controlling Gaussian smoothing. Higher sigma (e.g., 3) reduces noise but blurs edges, leading to thicker and fewer edges.
+
+\textbf{low\_threshold/high\_threshold}: These two parameters determine edge connectivity. Lower thresholds (e.g., 0.05/0.2) detect more edges, including noise, while higher thresholds retain only strong edges.
+
+\begin{lstlisting}
+image = skimage.io.imread('../TestImages/Week 1/hand.tiff', as_gray=True)
+edges_default = skimage.feature.canny(image)
+edges_sigma3 = skimage.feature.canny(image, sigma=3)
+edges_low_high = skimage.feature.canny(image, low_threshold=0.05, high_threshold=0.2)
+\end{lstlisting}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{pics/a5-3.1} 
+    \caption{xx.}
+\end{figure}
+
+\subsection{}
+
+\textbf{sigma}: Larger sigma (e.g., 3) smooths gradients, detecting corners at a coarser scale.
+
+\textbf{k}: Higher k (e.g., 0.2) reduces false corners but may miss weaker ones.
+
+\textbf{Method eps}: Uses Noble’s corner measure. The lower the eps is, the more sensitive the corner decection is.
+
+\begin{lstlisting}
+image_house = skimage.io.imread('../TestImages/Week 1/modelhouses.png', as_gray=True)
+
+harris1 = 
+	skimage.feature.corner_harris(image_house, sigma=1, k=0.05, method='k')
+harris2 = 
+	skimage.feature.corner_harris(image_house, sigma=3, k=0.05, method='k')
+harris3 = 
+	skimage.feature.corner_harris(image_house, sigma=1, k=0.2, method='k')
+harris4 = 
+	skimage.feature.corner_harris(image_house, sigma=1, method='eps', eps=0.01)
+
+fig, axes = plt.subplots(2, 2, figsize=(10, 10))
+axes[0,0].imshow(harris1, cmap='viridis')
+axes[0,0].set_title('sigma=1, k=0.05')
+axes[0,1].imshow(harris2, cmap='viridis')
+axes[0,1].set_title('sigma=3, k=0.05')
+axes[1,0].imshow(harris3, cmap='viridis')
+axes[1,0].set_title('sigma=1, k=0.2')
+axes[1,1].imshow(harris4, cmap='viridis')
+axes[1,1].set_title('sigma=1, eps=0.01')
+plt.show()
+\end{lstlisting}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{pics/a5-3.2} 
+    \caption{xx.}
+\end{figure}
+
+\subsection{}
+
+The figure shows the 250 strongest Harris corners (red crosses) detected on modelhouses.png using parameters sigma=1, k=0.05, and min\_distance=1. Corners are localized at building edges and intersections.
+
+\begin{lstlisting}
+def find_harris_corners(image, sigma=1, k=0.05, method='k', min_distance=1, num_peaks=250):
+    from skimage.feature import corner_harris, corner_peaks
+    response = corner_harris(image, sigma=sigma, k=k, method=method)
+    coords = corner_peaks(response, min_distance=min_distance, num_peaks=num_peaks)
+    return coords
+
+coords = find_harris_corners(image_house, sigma=1, k=0.05)
+\end{lstlisting}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{pics/a5-3.3} 
+    \caption{xx.}
+\end{figure}
+
 \section{Scale-space blob detector}
 %Shuangcheng1
 
