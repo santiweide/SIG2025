@@ -64,7 +64,101 @@
 %Shuangcheng
 \section{Inverse filtering}
 %zhigao
+\subsection{}
+\begin{lstlisting}
+def LSI(image, kernel, noise_image):
 
+    # convolution
+    degraded = convolve2d(image, kernel, mode='same', boundary='symm')
+    
+    # Adding noise
+    degraded += noise_image
+
+    return degraded
+\end{lstlisting}
+Based on the formula:
+\[g(x,y) = (f*g)(x,y)+n(x,y)\]
+Firstly, a convolution is done using the filter kernel and the original image, then the noise image is added, and finally the degraded image is output.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pics/a5_2.1_1.png} 
+    \caption{LSI for image with noise}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pics/a5_2.1_2.png} 
+    \caption{LSI for image with noise2}
+\end{figure}
+
+
+First, I set up two kernels, a Gaussian kernel(5x5) and an Mean kernel(5x5). Secondly there are also two types of noise which are mean 0 variance 2.5 and mean 0 and variance 10.
+It can be observed that when the noise is low the image is just blurred and when the noise is high the image is dominated by the noise.
+\subsection{}
+\begin{lstlisting}
+    
+def inverse_filtering(degraded_image, psf):
+
+    # Fourier transform
+    G = fft2(degraded_image)
+    H = fft2(psf, s=degraded_image.shape)
+
+    # F(u,v) = G(u,v)/H(u,v)
+    F = G / H
+
+    # Fourier inverse transformation.
+    restored_image = np.real(ifft2(F))
+
+    return restored_image  
+
+\end{lstlisting}
+
+Based on the formula:
+\[F(u,v) = G(u,v)/H(u,v)\]
+First do a Fourier transform on the degraded image as well as the psf, the filter kernel used in the previous question. Then the calculation is based on the formula, and finally Fourier inverse transform is done to convert the image to the frequency domain, and then output.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{pics/a5_2.2.png} 
+    \caption{Direct inverse filtering for different level of noise}
+\end{figure}
+
+
+I used the degraded image from the previous question using the Gaussian kernel and the LSI model. The noise remains the same, which are mean 0 variance 2.5 and mean 0 and variance 10.
+I think direct inverse filtering basically fails to restore the original image if noise is present. We can see that when the noise is low some of the original image is still present, if the noise is high then the restored image is completely hidden by the noise.
+
+
+\subsection{}
+\begin{lstlisting}
+    
+def wiener_filter(degraded_image, psf, K):
+
+    # Fourier transform
+    G = fft2(degraded_image)
+    H = fft2(psf, s=degraded_image.shape)
+
+    F_hat = (np.abs(H)**2 / (np.abs(H)**2 + K)) * (1/H) * G
+   
+
+    # Fourier inverse transformation.
+    restored_image = np.real(ifft2(F_hat))
+
+    return restored_image   
+
+\end{lstlisting}
+Based on the formula:
+\[F(u,v) = G(u,v)/\hat{H}(u,v)\]
+\[
+\frac{1}{\hat{H}(u,v)}
+= \frac{1}{H(u,v)} \cdot \frac{\lvert H(u,v)\rvert^2}{\lvert H(u,v)\rvert^2 + K}
+\]
+The degraded image, the filter kernel (PSF) used, and K(Signal-to-noise-ratio) are inputted in the first. Fourier transform them separately. Then the degraded image is calculated according to the formula and output after inverse transformation.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{pics/a5_2.3.png} 
+    \caption{Wiener filter with different K and noise level}
+\end{figure}
+I think that Wiener filtering is much better for recovery, especially when faced with a lot of noise. Firstly the noise settings are the same as in the previous question, I set K to 0.01 and 0.1.
+It can be observed that the recovery is good for low noise. For high noise, the recovered image is not completely covered by the noise but shows the outline of the original image.
 \section{Fixed scale feature detectors}
 
 %Wanjing
