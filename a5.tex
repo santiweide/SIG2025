@@ -6,6 +6,9 @@
 \usepackage{amsmath,amsthm,amssymb}
 \usepackage{graphicx}
 \usepackage{listings}
+\usepackage{placeins}
+\usepackage{enumitem}
+
 \newenvironment{statement}[2][Statement]{\begin{trivlist}
 \item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
 \usepackage{xcolor}
@@ -79,6 +82,7 @@ def LSI(image, kernel, noise_image):
 Based on the formula:
 \[g(x,y) = (f*g)(x,y)+n(x,y)\]
 Firstly, a convolution is done using the filter kernel and the original image, then the noise image is added, and finally the degraded image is output.
+
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\textwidth]{pics/a5_2.1_1.png} 
@@ -159,48 +163,60 @@ The degraded image, the filter kernel (PSF) used, and K(Signal-to-noise-ratio) a
 \end{figure}
 I think that Wiener filtering is much better for recovery, especially when faced with a lot of noise. Firstly the noise settings are the same as in the previous question, I set K to 0.01 and 0.1.
 It can be observed that the recovery is good for low noise. For high noise, the recovered image is not completely covered by the noise but shows the outline of the original image.
-\section{Fixed scale feature detectors}
 
+\section{Fixed scale feature detectors}
 %Wanjing
+%3.1
 \subsection{}
 
-\textbf{sigma}: This is the Standard deviation of the Gaussian filter, controlling Gaussian smoothing. Higher sigma (e.g., 3) reduces noise but blurs edges, leading to thicker and fewer edges.
+\textbf{sigma}: Controls the standard deviation of the Gaussian filter. Larger values (e.g., 3) increase smoothing, reducing noise at the cost of edge sharpness. This results in thicker, fewer edges due to blurred gradients. See result in Figure 5.
 
-\textbf{low\_threshold/high\_threshold}: These two parameters determine edge connectivity. Lower thresholds (e.g., 0.05/0.2) detect more edges, including noise, while higher thresholds retain only strong edges.
+\textbf{low\_threshold/high\_threshold}: Define gradient magnitude thresholds for edge connectivity. Lower values (e.g., 0.05/0.2) detect faint edges and noise, while higher values retain only prominent edges. The high threshold typically follows the rule of thumb: \( \text{high\_threshold} \approx 2-3 \times \text{low\_threshold} \).
 
 \begin{lstlisting}
+# Load grayscale image
 image = skimage.io.imread('../TestImages/Week 1/hand.tiff', as_gray=True)
+
+# Edge detection with default parameters (sigma=1)
 edges_default = skimage.feature.canny(image)
+
+# Increased smoothing (sigma=3)
 edges_sigma3 = skimage.feature.canny(image, sigma=3)
+
+# Lower thresholds for more edge sensitivity
 edges_low_high = skimage.feature.canny(image, low_threshold=0.05, high_threshold=0.2)
 \end{lstlisting}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.6\textwidth]{pics/a5-3.1} 
-    \caption{xx.}
+    \caption{Canny edge detection results. From left: default parameters (sigma=1), sigma=3 (blurred edges), and low thresholds (0.05/0.2) showing increased noise.}
 \end{figure}
 
+% 3.2
 \subsection{}
+\textbf{sigma}: Scales the Gaussian filter for gradient computation. Larger sigma (e.g., 3) smooths gradients over broader regions, detecting corners at coarser scales. See result in Figure 6.
 
-\textbf{sigma}: Larger sigma (e.g., 3) smooths gradients, detecting corners at a coarser scale.
+\textbf{k}: Sensitivity factor for the corner response \( R \). Higher values (e.g., 0.2) suppress false positives but may discard weaker corners. 
 
-\textbf{k}: Higher k (e.g., 0.2) reduces false corners but may miss weaker ones.
-
-\textbf{Method eps}: Uses Noble’s corner measure. The lower the eps is, the more sensitive the corner decection is.
+\textbf{method='eps'}: Switches to Noble’s corner measure \( R = \frac{\lambda_1 \lambda_2}{\epsilon + \lambda_1 + \lambda_2} \). Lower \(\epsilon\) (e.g., 0.01) increases sensitivity to corner-like structures.
 
 \begin{lstlisting}
 image_house = skimage.io.imread('../TestImages/Week 1/modelhouses.png', as_gray=True)
 
-harris1 = 
-	skimage.feature.corner_harris(image_house, sigma=1, k=0.05, method='k')
-harris2 = 
-	skimage.feature.corner_harris(image_house, sigma=3, k=0.05, method='k')
-harris3 = 
-	skimage.feature.corner_harris(image_house, sigma=1, k=0.2, method='k')
-harris4 = 
-	skimage.feature.corner_harris(image_house, sigma=1, method='eps', eps=0.01)
+# Baseline parameters: sigma=1, k=0.05, method='k' (Harris original)
+harris1 = skimage.feature.corner_harris(image_house, sigma=1, k=0.05, method='k')
 
+# Coarser scale (sigma=3)
+harris2 = skimage.feature.corner_harris(image_house, sigma=3, k=0.05, method='k')
+
+# Higher k suppresses weak corners
+harris3 = skimage.feature.corner_harris(image_house, sigma=1, k=0.2, method='k')
+
+# Noble's method with low epsilon for sensitivity
+harris4 = skimage.feature.corner_harris(image_house, sigma=1, method='eps', eps=0.01)
+
+# Plot responses
 fig, axes = plt.subplots(2, 2, figsize=(10, 10))
 axes[0,0].imshow(harris1, cmap='viridis')
 axes[0,0].set_title('sigma=1, k=0.05')
@@ -209,34 +225,38 @@ axes[0,1].set_title('sigma=3, k=0.05')
 axes[1,0].imshow(harris3, cmap='viridis')
 axes[1,0].set_title('sigma=1, k=0.2')
 axes[1,1].imshow(harris4, cmap='viridis')
-axes[1,1].set_title('sigma=1, eps=0.01')
+axes[1,1].set_title('sigma=1, eps=0.01 (Noble)')
 plt.show()
 \end{lstlisting}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.6\textwidth]{pics/a5-3.2} 
-    \caption{xx.}
+    \caption{Harris corner response maps. Top-left: baseline. Top-right: coarse scale. Bottom-left: high k. Bottom-right: Noble’s method with low epsilon.}
 \end{figure}
 
+% 3.3
 \subsection{}
 
-The figure shows the 250 strongest Harris corners (red crosses) detected on modelhouses.png using parameters sigma=1, k=0.05, and min\_distance=1. Corners are localized at building edges and intersections.
+The 250 strongest corners (red crosses) are localized at building edges, roof intersections, and structural vertices. Parameters (sigma=1, k=0.05, min\_distance=1) balance sensitivity and precision, with min\_distance ensuring spatial separation between peaks. See result in Figure 7.
 
 \begin{lstlisting}
 def find_harris_corners(image, sigma=1, k=0.05, method='k', min_distance=1, num_peaks=250):
     from skimage.feature import corner_harris, corner_peaks
+    # Compute corner response
     response = corner_harris(image, sigma=sigma, k=k, method=method)
+    # Extract top peaks with minimum pixel separation
     coords = corner_peaks(response, min_distance=min_distance, num_peaks=num_peaks)
     return coords
 
+# Detect corners on modelhouses.png
 coords = find_harris_corners(image_house, sigma=1, k=0.05)
 \end{lstlisting}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.6\textwidth]{pics/a5-3.3} 
-    \caption{xx.}
+    \caption{250 strongest Harris corners overlaid on modelhouses.png. Corners cluster at high-curvature points and structural intersections.}
 \end{figure}
 
 \section{Scale-space blob detector}
@@ -330,6 +350,7 @@ Since the inverse Fourier transform of this expression is again a Gaussian with 
 \end{equation}
 
 \subsection{}
+
 \begin{enumerate}[label=\roman*., leftmargin=1cm]
     \item
 We aim to derive the closed-form expression for the scale-normalized Laplacian:
@@ -461,7 +482,7 @@ Fig \ref{fig:4.4} illustrates the detection results on the sunflower.tiff image.
 
 \FloatBarrier
 
-\begin{figure}[ht]
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.7\columnwidth, keepaspectratio]{pics/a5-4.4.png}
     \caption[]{Result for 4.4}
