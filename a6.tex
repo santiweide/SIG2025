@@ -61,12 +61,179 @@
 
 \section{Transformations on images - Translation}
 %zhigao
+\subsection{}
+Translating one pixel to the right means that the value of each point (x,y) in the new image should be taken from the position of one pixel to the left of the original image.
 
-
-\section{Feature detection and image transforms}
-%wanjing
+The mathematical expression can be:
+ \[
+\tilde{I}(x,y) = I\bigl(x - 1,\, y\bigr).
+\]
 \subsection{}
 
+In the homogeneous coordinate, the transformation matrix for a 1-pixel translation to the right is:
+\[
+M = 
+\begin{pmatrix}
+1 & 0 & 1 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{pmatrix}
+\]
+
+\[
+\begin{pmatrix}
+x' \\[6pt]
+y' \\[6pt]
+1
+\end{pmatrix}
+=
+M
+\cdot
+\begin{pmatrix}
+x \\[6pt]
+y \\[6pt]
+1
+\end{pmatrix}
+\quad\Longrightarrow\quad
+\tilde{I}(x', y') = I(x, y)
+\]
+\subsection{}
+If we use convolution:
+\[
+K = 
+\begin{bmatrix}
+0 & 0 & 0 \\
+0 & 0 & 1 \\
+0 & 0 & 0
+\end{bmatrix}
+\]
+For Correlation:
+\[
+K = 
+\begin{bmatrix}
+0 & 0 & 0 \\
+1 & 0 & 0 \\
+0 & 0 & 0
+\end{bmatrix}
+\]
+\subsection{}
+Image size is 17*17, square size is 5*5.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{pics/a6_1.4.png} 
+    \caption{Zero-Valued Image}
+\end{figure}
+\subsection{}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{pics/a6_1.5.png} 
+    \caption{Zero-Valued Image after translation}
+\end{figure}
+I showed the original image as well as the image that was first translated 2 pixels to the right and then 5 pixels down.
+\begin{lstlisting}
+def translate_image(image, dx=0, dy=0, boundary='symm'):
+    
+    # Generate horizontal translation kernels
+    kernel_x = np.zeros((1, 2*abs(dx)+1))
+    kernel_x[0, abs(dx) + dx] = 1  
+    print(kernel_x)
+    
+    # Generate vertical translation kernels
+    kernel_y = np.zeros((2*abs(dy)+1, 1))
+    kernel_y[abs(dy) + dy, 0] = 1
+    print(kernel_y)
+    
+    # Translation in both directions
+    shifted = convolve2d(image, kernel_x, mode='same', boundary=boundary)
+    shifted = convolve2d(shifted, kernel_y, mode='same', boundary=boundary)
+    return shifted
+\end{lstlisting}
+The code is to first generate two translational kernels and then convolve the images separately.
+Scipy provides three boundary conditions, which are:
+'fill': pad input arrays with fillvalue.
+'wrap': circular boundary conditions.
+'symm': symmetrical boundary conditions.
+\subsection{}
+\begin{lstlisting}
+    def translate_image_homogeneous(image, tx, ty):
+    rows, cols = image.shape
+    # Create target image (initialised to 0)
+    translated = np.zeros_like(image)
+    
+    # homogeneous coordinate
+    T = np.array([[1, 0, tx],
+                  [0, 1, ty],
+                  [0, 0, 1]])
+    
+    for i in range(rows):
+        for j in range(cols):
+            # Find the inverse matrix of homogeneous coordinate and multiply the transformed coordinates.
+            x, y, _ = np.linalg.inv(T) @ [i, j, 1]
+            # nearest neighbor interpolation
+            x_round = int(round(x))
+            y_round = int(round(y))
+            # Check that the image limit is not exceeded.
+            if 0 <= x_round < rows and 0 <= y_round < cols:
+                translated[i, j] = image[x_round, y_round]
+    
+    return translated
+\end{lstlisting}
+First I would initialise an image the same size as the original and set all the initial values to 0. Then construct homogeneous coordinate and multiply them according to the eq 1.2. Then get the closest coordinates for interpolation, and return an image.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{pics/a6_1.6.png} 
+    \caption{Non-integer translations}
+\end{figure}
+
+
+The image on the left is the image that was first shifted 0.6 to the right and then 1.2 down.
+\newpage
+\subsection{}
+\begin{lstlisting}
+    def fourier_translate(image, tx, ty):
+
+    # Calculate the frequencies separately and then combine the frequency grids
+    rows, cols = image.shape
+    u = np.fft.fftfreq(cols)  
+    v = np.fft.fftfreq(rows)  
+    U, V = np.meshgrid(u, v)  
+
+    # Calculate the Fourier transform
+    F = fft2(image)
+    
+    # Fourier transform translation equation.
+    phase_shift = np.exp(-2j * np.pi * (tx * U + ty * V))
+
+    
+    F_translated = F * phase_shift
+
+    # Inverse Fourier transform back to the spatial domain
+    translated_image = np.real(ifft2(F_translated))
+
+    return translated_image
+\end{lstlisting}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{pics/a6_1.7.png} 
+    \caption{Fourier transform translation.}
+\end{figure}
+My code is built based on the following equation:
+\[
+f(x - a, y - b) \quad \xrightarrow{\mathcal{F}} \quad F(u,v) e^{-i 2\pi (ua + vb)}
+\]
+It seems to me that this Fourier transform translation method cannot cope with non-integer numbers. As we can see from the image, there is a blurring of the image after the translation, which proves that the pixels are not in the correct position.
+
+\subsection{}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{pics/a6_1.8.png} 
+    \caption{Fourier transform translation for real image}
+\end{figure}
+The method of the Fourier transform can be used for non-integer translations. I applied it to a real image and found that the blurring effect was not too noticeable, and that the out-of-range image was added to the edges after the translation.
+I'm guessing that the white square pictures have sharp edges, so that causes a loss of precision in the high frequency components corresponding to the edges, whereas the normal pictures have relatively smooth edges, so the effect is small.
+\section{Feature detection and image transforms}
+%wanjing
 \textbf{Step1 Preprocess}
 We apply Gaussian Blur to reduce noise and smooth out variations. We choose a kernel sized (5,5).
 \begin{lstlisting}
