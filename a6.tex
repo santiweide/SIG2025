@@ -308,5 +308,72 @@ plt.show()
 
 \section{Features, filter banks and texture}
 %shuangcheng
+    \subsection{}
+At the beginning, construct a filter bank using Gaussian derivative filters of first, second, and third orders at multiple scales. These filters are generated based on scale-normalized derivatives of the Gaussian function, ensuring appropriate sensitivity to structures of different sizes. The input image is loaded in grayscale and convolved with these filters in both the horizontal and vertical directions to extract features related to edges and textures.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{pics/a6-3.1-1.png}
+    \caption{Visualizations of Filters and Filter Responses}
+    \label{3.1-1}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{pics/a6_3.1.png}
+    \caption{Visualizations of Filters and Filter Responses}
+    \label{3.1}
+\end{figure}
+
+The filtering results shown in Fig \ref{3.1} and Fig \ref{3.1-1} highlight different structural details, with lower-order derivatives enhancing edges and higher-order derivatives capturing more intricate variations. Finally, the filtered images are visualized to analyze the responses at different scales and derivative orders, providing insight into how textures and features evolve across scales.
+
+\subsection{}
+Firstly, extract small patches of size 8×8 from the grayscale image, using either a custom patch extraction function or the extract\_patches\_2d function from sklearn. These patches are then vectorized and used as input to Principal Component Analysis (PCA), which identifies the most significant patterns in the image by computing the principal components. The top principal components serve as learned filters, representing dominant edge and texture patterns in the data. These PCA-derived filters are then applied to the original image via convolution to generate filtered images, highlighting different structural features. The results are visualized by displaying the learned filters in Fig \ref{3.2-1} and the corresponding filter responses in Fig \ref{3.2-2}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.4\textwidth]{pics/a6-3.2-1.png}
+    \caption{Visualizations of Filters}
+    \label{3.2-1}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{pics/a6-3.2-2.png}
+    \caption{Visualizations of Filter Responses}
+    \label{3.2-2}
+\end{figure}
+
+The N-Jet filter bank is manually designed using Gaussian derivatives, while PCA-based filters are data-driven, adapting to the statistical structure of the image. N-Jet filters capture edges at multiple scales in a structured way, whereas PCA filters highlight dominant patterns specific to the image. PCA may discover more adaptive features but is less interpretable than predefined Gaussian derivatives.
+
+\subsection{}
+First, we briefly give some introduction to the basic steps of how we realize these two segmentation processes:
+
+For PCA-Based Segmentation, the image is divided into small non-overlapping patches, which are flattened into feature vectors. PCA is applied to reduce dimensionality, preserving key information while improving clustering efficiency. The features are then normalized, and K-Means clustering is used to segment the image. The cluster labels are mapped back to reconstruct the segmented image, with a median blur applied to refine the boundaries.
+
+For N-Jet-Based Segmentation with Rotation Invariance and PCA, multi-scale N-Jet filters extract edge and texture features from the image. To ensure rotation invariance, the maximum response across filter orientations is computed. The extracted features are then reduced using PCA, minimizing redundancy while retaining key structural details. K-Means clustering is applied to the PCA-reduced data, grouping pixels into meaningful segments. The final segmentation is visualized with distinct colors.
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/a6-3.3-1.png}
+        \caption{Segmentation using N-Jet Features}
+        \label{fig:3.3-1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/a6-3.3-2.png}
+        \caption{PCA-Based Segmentation}
+        \label{fig:3.3-2}
+    \end{minipage}
+\end{figure}
+
+
+The segmentation results shown in Fig \ref{3.3-1} and \ref{3.3-2} highlight the differences between the two approaches. The PCA-based segmentation method, which extracts local patches and applies dimensionality reduction before clustering, effectively captures broader image structures. It successfully differentiates large regions such as the sky, water, and landmass, leading to a more structured segmentation. However, since this method relies on patch-based feature extraction, some fine-grained textures may be lost, which affects the segmentation of detailed areas.
+
+In contrast, the N-Jet-based segmentation with rotation invariance and PCA focuses on multi-scale edge and texture features. This approach enhances fine detail preservation, particularly in textured regions like the shoreline and water surface. The use of rotation invariance ensures that texture-based segmentation remains stable and consistent, even when patterns appear in different orientations. This makes the segmentation more robust to variations in the image structure.
+
+Additionally, PCA plays a crucial role in both approaches by reducing the dimensionality of the feature space, which improves clustering performance and computational efficiency. Without PCA, the high-dimensional feature representation could lead to increased noise and make the clustering process less effective. Overall, the combination of N-Jet features with PCA results in segmentation that retains intricate texture details while maintaining efficiency in computation.
+
 
 \end{document}
