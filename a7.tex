@@ -66,8 +66,81 @@
 %shuangcheng
 
 \section{The Hough Transform}
-% zhigao
+%zhigao
+\subsection{}
+\begin{lstlisting}
+    def hough_transform(edge_image, theta_step=1, rho_step=1, threshold=100):
+    # Chose range and discretization of ρ and θ.
+    rows, cols = edge_image.shape
+    diagonal = int(np.ceil(np.sqrt(rows**2 + cols**2)))  # Edge image diagonal length
+    thetas = np.deg2rad(np.arange(0, 180, theta_step))   # theta : 0-180°
+    rhos = np.arange(-diagonal, diagonal, rho_step)      # rho : [-d, d]
+    
+    # Create accumulator 2D array (Hough Space)
+    accumulator = np.zeros((len(rhos), len(thetas)), dtype=np.uint64)
+    
+    # Iterate over all edge pixels
+    edge_points = np.argwhere(edge_image)  # Get all the edge coordinates [y, x]
+    
+    for (y, x) in edge_points:            # Iterate over each edge point
+        for theta_idx, theta in enumerate(thetas):  
+            # Calculate the corresponding value of ρ
+            rho = x * np.cos(theta) + y * np.sin(theta)
+            
+            # Ensure that the accumulator array index cannot be negative
+            rho_idx = int(round((rho + diagonal) / rho_step))
+            
+            # Updating the accumulator (to ensure that it does not go out of bounds)
+            if 0 <= rho_idx < len(rhos):
+                accumulator[rho_idx, theta_idx] += 1
+    
+    # Lines correspond to accumulator values larger than a certain threshold.
+    lines = []
+    for rho_idx in range(accumulator.shape[0]):
+        for theta_idx in range(accumulator.shape[1]):
+            if accumulator[rho_idx, theta_idx] >= threshold:
+                lines.append( (rhos[rho_idx], thetas[theta_idx]) )
+    
+    return lines, accumulator
+\end{lstlisting}
+The code is written strictly following the steps on slide.
+Firstly input the edge image, the step size and the threshold value. Determine the range of $ \theta $ and $ \rho $ according to the steps in slide.
+Then the first iteration is performed and the corresponding $ \rho $ is computed. the second iteration gets the lines that are greater than the threshold.
 
+
+Computational complexity (two iterations): 
+\[ O(E \times T) + O(R \times T) \]
+E: indicates the number of edge pixels.
+T: The number of $ \theta $
+R: The number of all calculated $ \rho $ in the accumulator
+
+\subsection{}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{pics/A7_3.2_1.png} 
+    \caption{Hough Transform by my implementation}
+    \label{fig: Figure 1}
+\end{figure}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{pics/A7_3.2_2.png} 
+    \caption{Hough Transform by skimage}
+    \label{fig: Figure 2}
+\end{figure}
+First of all, my implementation and skimga's implementation output the same Hough transform.
+But as can be seen in Figures \ref{fig: Figure 1} and \ref{fig: Figure 2}, my method outputs more lines for the same threshold.
+I think there may be a difference in the method of calculation, skimage's method may filter adjacent peaks resulting in fewer lines.
+\subsection{}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pics/A7_3.3.png} 
+    \caption{Hough circle by skimage}
+    \label{fig: Figure 3}
+\end{figure}
+First use the Canny method to get the edge graph.
+Then set a radius range, based on the size of the coin in the picture. 
+The next step is to call the hough-circle method to get the accumulator, and finally call hough-circle-peaks to get the most obvious circle and draw it.
+\subsection{}
 \section{Morphology}
 %wanjing
 
