@@ -149,28 +149,27 @@ The next step is to call the hough-circle method to get the accumulator, and fin
 
 \subsubsection{Applying Opening and Closing} % 4.1.1 
 
-Figure~\ref{fig:full_images} Original shows the original image, as well as the results of the opening and closing operations. A zoomed-in region is presented in Figure~\ref{fig:full_images}-Zoom to highlight local changes.
+Figure~\ref{fig:full_images} \textit{Original} shows the original image, as well as the results of the opening and closing operations in \textit{Opened} and \textit{Closed} (Here we choose disk=1). A zoomed-in region is presented in Figure~\ref{fig:full_images} \textit{Zoom}, \textit{Opened Zoom} and \textit{Closed Zoom} to highlight local changes.
 
-\begin{itemize}
-    \item \textbf{Opening}: Erosion followed by dilation. This operation removes small noise and smooths object boundaries.
-    \item \textbf{Closing}: Dilation followed by erosion. This operation fills small holes and connects nearby objects.
-\end{itemize}
+\textbf{Changes: } As shown in the space around largest white spot, the \textit{Opened} removes small white specks and breaks thin connections, and the \textit{Closed} fills small black holes and merges nearby regions.
 
 \begin{figure}[ht]
     \centering
-        \includegraphics[width=\textwidth]{pics/a7-4.1.1}
+        \includegraphics[width=0.7\textwidth]{pics/a7-4.1.1}
     \caption{Original and Morphologically Processed Images}
     \label{fig:full_images}
 \end{figure}
 
 
 \subsubsection{Differences and Challenges} % 4.1.2 
-\textbf{A. } Since the opening removes small bright objects and smooths boundaries, while closing fills small dark gaps. In this case, opening reduces small cell fragments and isolates larger structures, whereas closing connects adjacent components and fills gaps.
+\textbf{A. } As noted in the course material \textit{Mathematical morphology - properties of dilation and erosion} page 17, opening and closing are dual operations; opening erodes then dilates (removing small bright objects), while closing dilates then erodes (filling small dark holes). In this case, opening reduces small cell fragments and isolates larger structures, whereas closing connects adjacent components and fills gaps.
 
 \textbf{B. } When separating individual cells with those methods, some cells remain connected after closing, making separation difficult, and then opening may remove small structures that are actually part of valid cells. Also, these operations are not sufficient to segment overlapping or touching cells completely.
 
 \subsubsection{Connected Components Analysis} % 4.1.3 
-We apply connected component labeling to both the opened and closed images, using 8-connectivity to define neighboring pixels. The number of detected components is reported.
+
+Figure \ref{fig:connected_components} shows the labeled images. For the different connected components, Opened image yields more labels (separated cells) with number=369, and the Closed image has fewer labels (merged cells), indicating over-merging, with number = 343.
+
 
 \begin{lstlisting}
 from skimage.measure import label
@@ -191,7 +190,6 @@ plt.title(f'Connected Components (Closed) - {labels_close.max()} labels')
 plt.show()
 \end{lstlisting}
 
-Figure \ref{fig:connected_components} shows the labeled images. 
 
 \begin{figure}[ht]
     \centering
@@ -200,9 +198,10 @@ Figure \ref{fig:connected_components} shows the labeled images.
     \label{fig:connected_components}
 \end{figure}
 
-We find the opening operation tends to break apart connected cells, increasing the number of detected components. The closing operation joins adjacent cells, reducing the total number of detected components. Also, neither operation is fully effective at isolating individual cells, and additional techniques such as watershed segmentation may be required.
+\textbf{Reflection: }We find the opening operation tends to break apart connected cells, increasing the number of detected components. The closing operation joins adjacent cells, reducing the total number of detected components. Also, neither operation is fully effective at isolating individual cells, and additional techniques such as watershed segmentation may be required.
 
+\subsection{} % 4.2
 
-
+\subsection{} % 4.3
 
 \end{document}
