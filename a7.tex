@@ -155,7 +155,7 @@ Figure~\ref{fig:full_images} \textit{Original} shows the original image, as well
 
 \begin{figure}[ht]
     \centering
-        \includegraphics[width=0.7\textwidth]{pics/a7-4.1.1}
+        \includegraphics[width=0.9\textwidth]{pics/a7-4.1.1}
     \caption{Original and Morphologically Processed Images}
     \label{fig:full_images}
 \end{figure}
@@ -202,6 +202,61 @@ plt.show()
 
 \subsection{} % 4.2
 
+Final total amount 45 kr. What we did: First we convert he input image to a binary format by setting pixels above a certain intensity threshold to \texttt{True}. 
+Then we apply Morphological Closing. The small gaps in the binary image are filled using a disk-shaped structuring element of radius 5.
+
+Then we did Connected Component Analysis. we use the \texttt{measure.label} function and it identifies individual objects (coins) in the image using 8-connectivity.
+
+Then we compute the Region Properties with function \texttt{measure.regionprops\_table}. It computes the area of each labeled region.
+
+Finally the coins are assigned a denomination based on their area, and we sum up the assigned values as the total amount. Our rules of the mapping the areas to values is as follows:
+    \begin{itemize}
+        \item If area $> 1000$, assign 20 kr.
+        \item If area $> 500$, assign 10 kr.
+        \item Otherwise, assign 5 kr.
+    \end{itemize}
+
 \subsection{} % 4.3
+
+After both trying out opening and closing, we choose the \textit{Closing (Dilation + Erosion)} to fill thin black lines (0s in the binary mask) while preserving the shape of larger structures (map outline and blue dot). The disk-shaped structuring element ensures isotropic processing to handle lines in any direction.
+
+After trying different parameters(disk radius=1,2,3,4,5), we choose the disk of radius 2, and it is large enough to cover the thickness of the lines but small enough to avoid distorting critical features.
+
+\begin{lstlisting}
+# Define different structuring element sizes
+disk_sizes = [1, 2, 3, 4, 5]
+
+fig, axes = plt.subplots(len(disk_sizes), 3, figsize=(15, 10))
+
+for i, size in enumerate(disk_sizes):
+    selem = morphology.disk(size)
+
+    # Perform opening and closing
+    opened = morphology.opening(binary_nat, selem)
+    closed = morphology.closing(binary_nat, selem)
+
+    # Plot original, opened, and closed images
+    axes[i, 0].imshow(binary_nat, cmap='gray')
+    axes[i, 0].set_title(f'Original (Disk={size})')
+
+    axes[i, 1].imshow(opened, cmap='gray')
+    axes[i, 1].set_title(f'Opened (Disk={size})')
+
+    axes[i, 2].imshow(closed, cmap='gray')
+    axes[i, 2].set_title(f'Closed (Disk={size})')
+
+plt.tight_layout()
+plt.show()
+\end{lstlisting}
+
+For the result visualization, we overlay the original binary image and cleaned result and high light the difference, as shown in Figure~\ref{fig:viz}.
+
+\begin{figure}[ht]
+    \centering
+        \includegraphics[width=\textwidth]{pics/a7-4.3}
+    \caption{Visualization of the cleaned binary segmentation mask}
+    \label{fig:viz}
+\end{figure}
+
 
 \end{document}
