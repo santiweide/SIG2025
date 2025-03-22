@@ -61,9 +61,185 @@
 
 \section{Segmentation}
 %shuangcheng
+\subsection{}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{pics/a7-1.1-1.png}
+    \caption{Results for matrikelnumre-nat.png}
+    \label{1.1-1}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{pics/a7-1.1-2.png}
+    \caption{Results for matrikelnumre-art.png}
+    \label{1.1-2}
+\end{figure}
+
+\begin{lstlisting}
+def plot_images_and_histograms(image_name):
+    image_color = cv2.imread(image_name)
+    image_rgb = cv2.cvtColor(image_color, cv2.COLOR_BGR2RGB)
+    image_gray = cv2.cvtColor(image_color, cv2.COLOR_BGR2GRAY)
+
+    #  Otsu  threshold
+    thresh_val = threshold_otsu(image_gray)
+    binary = image_gray > thresh_val
+
+    ###The Figure code is omitted. (Including color, grayscale image display and grayscale histogram display)
+
+    # Display segmentation as following
+    axes[0, 2].imshow(binary, cmap='gray')
+    axes[0, 2].set_title(f"Otsu Thresholding\nThreshold = {thresh_val:.2f}")
+    axes[0, 2].axis("off")
+
+    ###Figure code omitted
+
+    return thresh_val
+\end{lstlisting}
+
+Both images, \texttt{matrikelnumre\_nat.png} (results shown in Figure \ref{1.1-1}) and \texttt{matrikelnumre\_art.png} (results shown in Figure \ref{1.1-2}), show clear differences in brightness between the foreground (the map) and the background (the desk). This makes them suitable for foreground-background segmentation using intensity-based methods like Otsu thresholding.
+
+In both images, the grayscale histograms have two main peaks. One peak represents the dark background, and the other represents the lighter map area. Otsu's method can find a good threshold value between these two peaks, which helps separate the map from the background effectively.
+
+For \texttt{matrikelnumre\_nat.png}, the segmentation works very well. The thresholded image clearly separates the map from the background, and there is little noise. This result matches the histogram, which shows a clear gap between the two peaks.
+
+However, for \texttt{matrikelnumre\_art.png}, the segmentation is not as clean. Even though the histogram still has two peaks, a strong shadow or dark area under the map makes the result worse. The shadow is sometimes seen as part of the foreground, which adds noise to the binary image.
+
+In summary, both images can be segmented using foreground-background thresholding, but lighting artifacts and shadows in the second image reduce the effectiveness of the Otsu method. The comparison highlights that Otsu thresholding works best when the foreground and background are well-separated in intensity and the image is free of strong local variations.
+
+\subsection{}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\textwidth]{pics/a7-1.2.png}
+    \caption{Canny Edge Detection}
+    \label{1.2}
+\end{figure}
+
+\begin{lstlisting}
+###image load part omitted
+
+image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+image_blur = cv2.GaussianBlur(image_gray, (5, 5), 1.0)
+
+edges = cv2.Canny(image_blur, threshold1=100, threshold2=200)
+
+###Figure Drawing part omitted
+\end{lstlisting}
+From the result images shown in Figure \ref{1.2}, we can see that the Canny edge detector successfully captures the line structures of the map. The edges of the map and the internal street network are clearly visible. The background area is mostly ignored, and the overall edge detection result appears clean and focused on important structures. This makes Canny especially suitable for analyzing the structure of map-like images.
+
+Compared to Otsu thresholding, Canny does not provide a full foreground region. Instead, it only detects the edges, so it cannot directly generate a region mask. However, for images with complex structures and rich textures, like maps, Canny is very effective at extracting meaningful shapes and lines. If full region segmentation is needed, Canny must be combined with other methods, such as region filling or morphological operations.
+
+In terms of performance, Canny is better at detecting edge outlines, while Otsu is better at separating full regions. When the lighting in an image is uneven, Otsu can mistakenly classify shadows as part of the foreground. In contrast, Canny is more robust to such lighting changes and produces cleaner results.
+
+Canny has several advantages. It can clearly extract structural outlines and is less sensitive to intensity changes such as shadows. It works well for images with line patterns and rich textures. However, it also has some limitations. Canny only gives edge lines, not complete regions. It is also sensitive to noise, which may cause broken edges. Therefore, it is not ideal for tasks that require region masks. Depending on the specific task, Canny and thresholding methods like Otsu can be used together to complement each other.
+
 
 \section{Image Transform}
 %shuangcheng
+\subsection{}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{pics/a7-2.1.png}
+    \caption{Corners Detecting}
+    \label{2.1}
+\end{figure}
+
+\begin{lstlisting}
+# Preprocessing: blur + threshold to suppress inner map textures
+blurred = cv2.GaussianBlur(gray, (7, 7), 0)
+_, thresh = cv2.threshold(blurred, 150, 255, cv2.THRESH_BINARY)
+
+#further denoising using morphological opening
+kernel = np.ones((5, 5), np.uint8)
+opened = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+
+# Harris corner detection
+gray_float = np.float32(opened)
+dst = cv2.cornerHarris(gray_float, blockSize=2, ksize=3, k=0.04)
+
+# Dilate corner response to enhance visibility
+dst_dilated = cv2.dilate(dst, None)
+
+# Extract corner coordinates using a threshold
+corner_threshold = 0.01 * dst_dilated.max()
+corner_coords = np.argwhere(dst_dilated > corner_threshold)
+corner_coords = np.flip(corner_coords, axis=1)  # Convert to (x, y)
+
+# Find the largest external contour (assumed to be the map border)
+contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+largest_contour = max(contours, key=cv2.contourArea)
+epsilon = 0.05 * cv2.arcLength(largest_contour, True)
+approx_corners = cv2.approxPolyDP(largest_contour, epsilon, True)
+
+# Extract the four corner points
+four_corners = [tuple(pt[0]) for pt in approx_corners]
+
+\end{lstlisting}
+
+To reduce the number of irrelevant corner points detected by the Harris algorithm inside the map area, I applied several preprocessing steps to emphasize the paper boundaries and suppress internal details.
+
+First, a Gaussian blur was applied to the image to smooth out fine details. This helped reduce the response to internal lines and lowered their impact on corner detection. Then, a fixed threshold was used to binarize the image, clearly separating the map region from the background and making the paper area stand out. After that, morphological opening was performed to remove small noise points and simplify the overall structure.
+
+Next, the contours of the paper were extracted using the \texttt{findContours} function. A polygonal approximation was then applied using \texttt{approxPolyDP}, which simplified the detected contour into a quadrilateral. From this shape, the four corner points of the map were obtained.
+
+With these preprocessing steps, the Harris corner detection was effectively limited to the outer corners of the map paper as in Figure \ref{2.1}, while ignoring the complex internal building lines.
+
+The final coordinates of the four corner points of the map (Cartesian coordinates): (1360, 166); (387, 300); (407, 1011);(1612, 781).
+
+\subsection{}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{pics/a7-2.2.png}
+    \caption{Homography Transform}
+    \label{2.1}
+\end{figure}
+
+\begin{lstlisting}
+pts_src = np.array([
+    [387, 300],     # top-left
+    [1360, 166],    # top-right
+    [1612, 781],    # bottom-right
+    [407, 1011]     # bottom-left
+], dtype=np.float32)
+
+width = 1000
+height = 700
+pts_dst = np.array([
+    [0, 0],                 # top-left
+    [width - 1, 0],         # top-right
+    [width - 1, height - 1],# bottom-right
+    [0, height - 1]         # bottom-left
+], dtype=np.float32)
+
+H = cv2.getPerspectiveTransform(pts_src, pts_dst)
+
+warped = cv2.warpPerspective(image, H, (width, height))
+\end{lstlisting}
+
+To achieve a bird's eye view of the image, we use a homography transformation, which is mathematically defined as:
+
+\[
+\begin{bmatrix}
+x' \\
+y' \\
+1
+\end{bmatrix}
+=
+H
+\begin{bmatrix}
+x \\
+y \\
+1
+\end{bmatrix}
+\]
+
+Here, \( H \) is a \( 3 \times 3 \) homography matrix that maps the four corners of the map in the original image to a rectangular region in the target image.
+
+The main steps to achieve that are as follows: we first manually select the four corners of the map in the original image. These points serve as the input points for the transformation. Then, we define the corresponding four corners in the target image, typically forming a regular rectangle. Based on these point pairs, we compute the homography matrix. Finally, we use the \texttt{skimage.transform.warp} function to apply the homography and generate the bird's eye view image.
 
 \section{The Hough Transform}
 %zhigao
