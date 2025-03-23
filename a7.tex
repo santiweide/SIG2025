@@ -295,30 +295,61 @@ R: The number of all calculated $ \rho $ in the accumulator
     \centering
     \includegraphics[width=0.7\textwidth]{pics/A7_3.2_1.png} 
     \caption{Hough Transform by my implementation}
-    \label{fig: Figure 1}
+    \label{fig: Figure 6}
 \end{figure}
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.7\textwidth]{pics/A7_3.2_2.png} 
     \caption{Hough Transform by skimage}
-    \label{fig: Figure 2}
+    \label{fig: Figure 7}
 \end{figure}
 First of all, my implementation and skimga's implementation output the same Hough transform.
-But as can be seen in Figures \ref{fig: Figure 1} and \ref{fig: Figure 2}, my method outputs more lines for the same threshold.
+But as can be seen in Figures \ref{fig: Figure 6} and \ref{fig: Figure 7}, my method outputs more lines for the same threshold.
 I think there may be a difference in the method of calculation, skimage's method may filter adjacent peaks resulting in fewer lines.
 \subsection{}
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{pics/A7_3.3.png} 
     \caption{Hough circle by skimage}
-    \label{fig: Figure 3}
+    \label{fig: Figure 8}
 \end{figure}
 First use the Canny method to get the edge graph.
 Then set a radius range, based on the size of the coin in the picture. 
 The next step is to call the hough-circle method to get the accumulator, and finally call hough-circle-peaks to get the most obvious circle and draw it.
+Figure \ref{fig: Figure 8} shows the final result.
+
+\newpage
 \subsection{}
+\begin{lstlisting}
+import numpy as np
+import matplotlib.pyplot as plt
+from skimage import io, color, morphology, feature, transform
 
+# Grayscale image conversion.
+image = io.imread('transformed_map.png')
+image = image[..., :3]
+gray = color.rgb2gray(image)
 
+# Canny edge image generation
+edges = feature.canny(gray, sigma=2)
+
+# Setting radius intervals and detecting circles
+radii = np.arange(7, 10, 1) 
+hough_res = transform.hough_circle(edges, radii)
+accums, cx, cy, radii = transform.hough_circle_peaks(
+    hough_res, radii, total_num_peaks=1
+)
+
+\end{lstlisting}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{pics/A7_3.4.png} 
+    \caption{Bird’s eye view transformed map and draw of circle}
+    \label{fig: Figure 9}
+\end{figure}
+Firstly the edge image is got using Canny method. Then using hough\_circle, a Hough accumulator is generated.
+The Hough Circle Transform actually finds the combination of circle parameters corresponding to each edge point of the edge image, i.e., the circle centre coordinates and radius. The parameter combinations are then voted on and the high vote regions correspond to the possible circles.
+Finally use the hough\_circle\_peaks method to get the peaks, which are the circle parameters.
 \section{Morphology}
 %wanjing
 \subsection{} % 4.1
